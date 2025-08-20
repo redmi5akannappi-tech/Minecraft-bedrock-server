@@ -6,18 +6,18 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
-WORKDIR /tmp/server
+WORKDIR /server
 
-# Copy scripts
-COPY start.sh install_playit.sh ./
-RUN chmod +x start.sh install_playit.sh
+# Copy scripts into container
+COPY start.sh install_playit.sh entrypoint.sh ./
+RUN chmod +x start.sh install_playit.sh entrypoint.sh
 
 # Copy Bedrock server zip and unzip it
-COPY bedrock-server-1.21.102.1.zip ./
-RUN unzip -o bedrock-server-1.21.102.1.zip && rm bedrock-server-1.21.102.1.zip
+COPY bedrock-server.zip /server/
+RUN unzip -o bedrock-server.zip -d /server && rm bedrock-server.zip
 
 # Expose Bedrock port (UDP handled by Playit)
 EXPOSE 19132/udp
 
-# Run Playit agent in background, then start Bedrock
-CMD ./install_playit.sh && ./playit & ./start.sh
+# Run entrypoint
+CMD ["/server/entrypoint.sh"]
