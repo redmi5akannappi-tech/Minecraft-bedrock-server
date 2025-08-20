@@ -14,7 +14,7 @@ RUN chmod +x start.sh install_playit.sh
 
 # Copy Bedrock server zip and unzip it
 COPY bedrock-server-1.21.102.1.zip ./
-RUN unzip -o bedrock-server-1.21.102.1.zip && rm bedrock-server-1.21.102.1.zip
+RUN unzip -o bedrock-server.zip && rm bedrock-server.zip
 
 # Expose Bedrock port (UDP handled by Playit)
 EXPOSE 19132/udp
