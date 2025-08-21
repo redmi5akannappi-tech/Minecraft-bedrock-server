@@ -2,8 +2,9 @@ FROM debian:bookworm-slim
 
 # Install only required dependencies
 RUN apt-get update && apt-get install -y \
-    unzip curl libssl3 libcurl4 libstdc++6 \
+    unzip curl libssl3 libcurl4 libstdc++6 python3 \
     && rm -rf /var/lib/apt/lists/*
+
 
 # Set working directory
 WORKDIR /server
