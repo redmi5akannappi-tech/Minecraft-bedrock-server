@@ -6,7 +6,7 @@ RESTORE_DIR="/tmp/bedrock_restore"
 WORLD_DIR="/server/worlds"
 
 rm -rf "$RESTORE_DIR"
-git clone https://github.com/you/bedrock-backups.git "$RESTORE_DIR"
+git clone https://github.com/redmi5akannappi-tech/Minecraft-world-data.git "$RESTORE_DIR"
 
 cd "$RESTORE_DIR"
 cat world_chunk_* > world_backup.tar.gz
