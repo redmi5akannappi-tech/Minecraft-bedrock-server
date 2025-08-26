@@ -19,7 +19,7 @@ split -b $CHUNK_SIZE world_backup.tar.gz world_chunk_
 
 # Push to GitHub
 if [ ! -d "$REPO_DIR/.git" ]; then
-    git clone https://github.com/you/bedrock-backups.git "$REPO_DIR"
+    git clone https://$GITHUB_USER:$GITHUB_TOKEN@github.com/redmi5akannappi-tech/Minecraft-world-data.git "$REPO_DIR"
 fi
 
 cd "$REPO_DIR"
