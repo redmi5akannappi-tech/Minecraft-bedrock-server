@@ -12,11 +12,15 @@ DUMMY_PID=$!
 /server/install_playit.sh &
 PLAYIT_PID=$!
 
+# Start backup watcher in background
+/server/auto-backup.sh &
+BACKUP_WATCHER_PID=$!
+
 # Start Bedrock server
 /server/start.sh &
 BEDROCK_PID=$!
 
 # On shutdown, backup world + cleanup
-trap "/server/backup.sh; kill $PLAYIT_PID $DUMMY_PID $BEDROCK_PID" EXIT
+trap "/server/backup.sh; kill $PLAYIT_PID $DUMMY_PID $BEDROCK_PID $BACKUP_WATCHER_PID" EXIT
 
 wait
