@@ -1,21 +1,22 @@
 #!/bin/bash
 set -e
 
-# Start a dummy HTTP server so Render detects an open TCP port
-# Runs in the background
+# Dummy HTTP server for Render
 python3 -m http.server ${PORT:-8080} --bind 0.0.0.0 &
 DUMMY_PID=$!
 
+# Restore world from GitHub
+/server/restore.sh || echo "No backup found, starting fresh world."
+
 # Start Playit in background
-./install_playit.sh &
+/server/install_playit.sh &
 PLAYIT_PID=$!
 
-# Keep restarting Bedrock to avoid memory leaks
-while true; do
-    ./start.sh
-    echo "Bedrock server stopped or crashed. Restarting in 10 seconds..."
-    sleep 10
-done
+# Start Bedrock server
+/server/start.sh &
+BEDROCK_PID=$!
 
-# Cleanup on exit
-trap "kill $PLAYIT_PID $DUMMY_PID" EXIT
+# On shutdown, backup world + cleanup
+trap "/server/backup.sh; kill $PLAYIT_PID $DUMMY_PID $BEDROCK_PID" EXIT
+
+wait
