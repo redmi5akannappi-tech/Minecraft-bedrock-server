@@ -29,13 +29,13 @@ if [ ! -f "$PLAYIT_DIR/agent.yml" ]; then
       cat "$PLAYIT_DIR/agent.yml"
       echo "--------------------------------------------"
       echo "👉 Copy the above YAML into your Render env var PLAYIT_AGENT_YML"
+      kill $PLAYIT_PID || true
       break
     fi
     sleep 5
   done
-
-  wait $PLAYIT_PID
-else
-  echo "✅ Found existing agent.yml, starting Playit..."
-  "$PLAYIT_DIR/playit"
 fi
+
+# At this point, either env var restored or claim created agent.yml
+echo "✅ Starting Playit with existing agent.yml..."
+"$PLAYIT_DIR/playit"
