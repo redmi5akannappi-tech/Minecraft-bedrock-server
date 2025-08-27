@@ -7,7 +7,48 @@ mkdir -p "$PLAYIT_DIR"
 # Check if this is the first run (no configuration saved)
 if [ -z "$PLAYIT_CONFIGURED" ] || [ "$PLAYIT_CONFIGURED" != "true" ]; then
     echo "🔧 First-time setup detected. Starting setup process..."
-    exec /server/setup_playit.sh
+    
+    # Download Playit if missing
+    if [ ! -f "$PLAYIT_DIR/playit" ]; then
+        echo "📥 Downloading Playit agent..."
+        curl -L https://github.com/playit-cloud/playit-agent/releases/latest/download/playit-linux-amd64 -o "$PLAYIT_DIR/playit"
+        chmod +x "$PLAYIT_DIR/playit"
+    fi
+
+    cd "$PLAYIT_DIR"
+    
+    # Start playit and check if it creates config files quickly
+    echo "🔧 Starting Playit agent..."
+    "$PLAYIT_DIR/playit" &
+    PLAYIT_PID=$!
+    
+    # Wait a bit to see if config files appear (already claimed scenario)
+    sleep 10
+    
+    if [ -f "$PLAYIT_DIR/agent.yml" ] && [ -f "$PLAYIT_DIR/secret.key" ]; then
+        echo "✅ Found existing Playit configuration!"
+        echo "📋 Your tunnel is already set up. Save these environment variables:"
+        echo "========================================================="
+        echo ""
+        echo "PLAYIT_AGENT_YML:"
+        cat "$PLAYIT_DIR/agent.yml" | base64 -w 0
+        echo ""
+        echo ""
+        echo "PLAYIT_SECRET_KEY:"  
+        cat "$PLAYIT_DIR/secret.key" | base64 -w 0
+        echo ""
+        echo ""
+        echo "PLAYIT_CONFIGURED=true"
+        echo ""
+        echo "Add these to your Render environment variables to avoid this setup next time!"
+        
+        # Keep running
+        wait $PLAYIT_PID
+        exit 0
+    else
+        # No config files found, run full setup
+        exec /server/setup_playit.sh
+    fi
 fi
 
 echo "✅ Playit configuration found in environment variables"
