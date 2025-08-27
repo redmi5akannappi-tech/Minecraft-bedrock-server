@@ -3,9 +3,10 @@ set -e
 PLAYIT_DIR="/server/playit-data"
 mkdir -p "$PLAYIT_DIR"
 
-# If env var exists, restore config
-if [ ! -f "$PLAYIT_DIR/agent.yml" ] && [ -n "$PLAYIT_AGENT_YML" ]; then
+# Restore both agent.yml and secret.key from env vars if they exist
+if [ -n "$PLAYIT_AGENT_YML" ] && [ -n "$PLAYIT_SECRET_KEY" ]; then
   echo "$PLAYIT_AGENT_YML" > "$PLAYIT_DIR/agent.yml"
+  echo "$PLAYIT_SECRET_KEY" > "$PLAYIT_DIR/secret.key"
 fi
 
 # Download Playit if missing
@@ -16,26 +17,36 @@ fi
 
 cd "$PLAYIT_DIR"
 
-if [ ! -f "$PLAYIT_DIR/agent.yml" ]; then
-  echo "⚠ No Playit agent.yml found! Starting in claim mode..."
+# Check if both required files exist
+if [ ! -f "$PLAYIT_DIR/agent.yml" ] || [ ! -f "$PLAYIT_DIR/secret.key" ]; then
+  echo "⚠ Missing configuration! Starting in claim mode..."
   "$PLAYIT_DIR/playit" &
   PLAYIT_PID=$!
 
-  echo "⏳ Waiting for agent.yml to be created after claim..."
-  for i in {1..60}; do   # wait up to 5 minutes
-    if [ -f "$PLAYIT_DIR/agent.yml" ]; then
-      echo "✅ Playit generated agent.yml, printing it below:"
-      echo "--------------------------------------------"
+  # Wait for both files to be created
+  echo "⏳ Waiting for configuration files to be created after claim..."
+  for i in {1..60}; do
+    if [ -f "$PLAYIT_DIR/agent.yml" ] && [ -f "$PLAYIT_DIR/secret.key" ]; then
+      echo "✅ Playit generated configuration files. Please save these values:"
+      echo ""
+      echo "PLAYIT_AGENT_YML:"
       cat "$PLAYIT_DIR/agent.yml"
-      echo "--------------------------------------------"
-      echo "👉 Copy the above YAML into your Render env var PLAYIT_AGENT_YML"
-      kill $PLAYIT_PID || true
-      break
+      echo ""
+      echo "PLAYIT_SECRET_KEY:"
+      cat "$PLAYIT_DIR/secret.key"
+      echo ""
+      echo "👉 Add these environment variables to your Render service to persist across restarts"
+      kill $PLAYIT_PID
+      wait $PLAYIT_PID 2>/dev/null || true
+      exit 0
     fi
     sleep 5
   done
+  echo "❌ Failed to generate configuration files within timeout"
+  kill $PLAYIT_PID
+  wait $PLAYIT_PID 2>/dev/null || true
+  exit 1
 fi
 
-# At this point, either env var restored or claim created agent.yml
-echo "✅ Starting Playit with existing agent.yml..."
-"$PLAYIT_DIR/playit"
+echo "✅ Starting Playit with existing configuration..."
+exec "$PLAYIT_DIR/playit"
