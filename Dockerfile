@@ -1,14 +1,13 @@
 FROM debian:bookworm-slim
-
 RUN apt-get update && apt-get install -y \
-    unzip curl libssl3 libcurl4 libstdc++6 python3 git cron \
+    unzip curl libssl3 libcurl4 libstdc++6 python3 git cron jq \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /server
 
 # Copy scripts
-COPY start.sh install_playit.sh entrypoint.sh backup.sh restore.sh ./
-RUN chmod +x start.sh install_playit.sh entrypoint.sh backup.sh restore.sh
+COPY start.sh install_playit.sh entrypoint.sh backup.sh restore.sh setup_playit.sh auto-backup.sh ./
+RUN chmod +x start.sh install_playit.sh entrypoint.sh backup.sh restore.sh setup_playit.sh auto-backup.sh
 
 # Copy and extract server
 COPY bedrock-server.zip /server/
