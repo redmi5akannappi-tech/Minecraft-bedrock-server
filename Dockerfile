@@ -17,7 +17,9 @@ RUN unzip -o bedrock-server.zip -d /server && rm bedrock-server.zip
 RUN mkdir -p /server/worlds
 
 # Set up scheduled backups with cron
-RUN echo "0 */6 * * * /server/backup.sh > /proc/1/fd/1 2>/proc/1/fd/2" | crontab -
+
+# Set up scheduled backups with cron (once a day at 4 AM)
+RUN echo "0 4 * * * /server/auto-backup.sh >> /var/log/cron.log 2>&1" | crontab -
 
 # Optimize Bedrock config for free tier
 RUN sed -i 's/^view-distance=.*/view-distance=3/' server.properties && \
