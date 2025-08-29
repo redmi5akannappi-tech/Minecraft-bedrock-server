@@ -23,10 +23,7 @@ echo "🔧 Setting up Playit.gg tunnel..."
 /server/install_playit.sh &
 PLAYIT_PID=$!
 
-# Start backup watcher in background
-echo "💾 Starting backup watcher..."
-/server/auto-backup.sh &
-BACKUP_WATCHER_PID=$!
+# 
 
 # Give Playit a moment to initialize
 sleep 5
