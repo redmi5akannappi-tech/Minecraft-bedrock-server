@@ -1,14 +1,14 @@
 #!/bin/bash
-while true; do
-    # Get CPU usage %
-    cpu=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8}')
-    
-    if (( $(echo "$cpu < 20" | bc -l) )); then
-        echo "[AutoBackup] Low load ($cpu%), running backup..."
-        /server/backup.sh
-        sleep 3600   # wait 1h before next backup
-    else
-        echo "[AutoBackup] High load ($cpu%), retrying in 5m"
-        sleep 300
-    fi
-done
+
+# Query Bedrock server for online players
+players=$(curl -s http://localhost:19132/status | jq '.players.online' 2>/dev/null)
+
+# If the query fails, assume 0 players
+players=${players:-0}
+
+if [ "$players" -eq 0 ]; then
+    echo "[AutoBackup] No players online, running backup..."
+    /server/backup.sh
+else
+    echo "[AutoBackup] $players players online, skipping backup..."
+fi
