@@ -1,32 +1,44 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# env defaults
-FAKE_PORT="${FAKE_PORT:-8080}"
-BACKUP_INTERVAL_SECONDS="${BACKUP_INTERVAL_SECONDS:-86400}"
-
 cd /server
 
-# Start fake HTTP/TCP server so Render sees a listening TCP port
-python3 ./fake_server.py & 
+# ============================================
+# 1. Start fake HTTP server for Render health
+# ============================================
+echo "[ENTRYPOINT] Starting fake HTTP server on port ${FAKE_PORT:-8080}..."
+python3 fake_server.py &
 FAKE_PID=$!
+sleep 1
 
-# Optionally install or start Playit (if you have script)
+# ============================================
+# 2. Start Playit tunnel (if installed)
+# ============================================
 if [ -x ./install_playit.sh ]; then
-  ./install_playit.sh || true &
+    echo "[ENTRYPOINT] Starting Playit tunnel..."
+    ./install_playit.sh &
+    PLAYIT_PID=$!
+    sleep 3
 fi
 
-# Start periodic backup background daemon
+# ============================================
+# 3. Attempt to restore world (if backup exists)
+# ============================================
+if [ -x ./restore.sh ]; then
+    echo "[ENTRYPOINT] Checking for backups..."
+    ./restore.sh || echo "[ENTRYPOINT] No restore performed."
+fi
+
+# ============================================
+# 4. Start auto-backup service
+# ============================================
 if [ -x ./auto-backup.sh ]; then
-  ./auto-backup.sh & 
-  BACKUP_PID=$!
+    echo "[ENTRYPOINT] Starting backup scheduler..."
+    ./auto-backup.sh &
 fi
 
-# Start the monitored bedrock server
+# ============================================
+# 5. Start Bedrock server LAST
+# ============================================
+echo "[ENTRYPOINT] Starting Bedrock server..."
 ./start.sh
-
-# When start.sh returns (server stopped), kill background processes
-echo "Bedrock server exited. Cleaning up..."
-kill ${FAKE_PID} 2>/dev/null || true
-kill ${BACKUP_PID:-0} 2>/dev/null || true
-wait

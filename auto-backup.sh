@@ -5,15 +5,15 @@ BACKUP_INTERVAL_SECONDS="${BACKUP_INTERVAL_SECONDS:-86400}"
 WORLD_DIR="${WORLD_DIR:-/server/worlds}"
 
 while true; do
-  if [ ! -d "$WORLD_DIR" ]; then
-    echo "World does not exist yet, waiting..."
+    if [ ! -d "$WORLD_DIR" ]; then
+        echo "[AUTO-BACKUP] World does not exist yet, waiting..."
+        sleep "$BACKUP_INTERVAL_SECONDS"
+        continue
+    fi
+
+    echo "[AUTO-BACKUP] Running scheduled backup..."
+    ./backup.sh || echo "[AUTO-BACKUP] Backup failed"
+
+    echo "[AUTO-BACKUP] Sleeping $BACKUP_INTERVAL_SECONDS seconds..."
     sleep "$BACKUP_INTERVAL_SECONDS"
-    continue
-  fi
-
-  echo "$(date -Is) Starting periodic backup..."
-  ./backup.sh || echo "backup failed"
-
-  echo "$(date -Is) Sleeping $BACKUP_INTERVAL_SECONDS seconds until next backup..."
-  sleep "$BACKUP_INTERVAL_SECONDS"
 done

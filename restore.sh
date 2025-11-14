@@ -1,74 +1,63 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+WORLD_DIR="${WORLD_DIR:-/server/worlds}"
 GITHUB_REPO="${GITHUB_REPO:-}"
 GITHUB_TOKEN="${GITHUB_TOKEN:-}"
-TIMESTAMP="${TIMESTAMP:-}"  # e.g. 20251114T123456Z
-WORLD_DIR="${WORLD_DIR:-/server/worlds}"
-TMPDIR="/tmp/restore_${TIMESTAMP:-latest}"
 
+# If no repo config, skip restore
 if [ -z "$GITHUB_REPO" ] || [ -z "$GITHUB_TOKEN" ]; then
-  echo "GITHUB_REPO and GITHUB_TOKEN must be set" >&2
-  exit 1
+    echo "[RESTORE] No GitHub config. Skipping restore."
+    exit 0
 fi
 
-# If timestamp not provided, list backups and pick latest
-if [ -z "$TIMESTAMP" ]; then
-  echo "Finding latest backup timestamp..."
-  # list contents of 'backups' directory
-  resp=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/${GITHUB_REPO}/contents/backups")
-  TIMESTAMP=$(echo "$resp" | jq -r '.[].name' | sort -r | head -n1)
-  if [ -z "$TIMESTAMP" ] || [ "$TIMESTAMP" = "null" ]; then
-    echo "No backups found in repo/backups" >&2
-    exit 1
-  fi
-  echo "Using latest timestamp: $TIMESTAMP"
+# Check if backups folder exists
+resp=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+    "https://api.github.com/repos/$GITHUB_REPO/contents/backups")
+
+# No backups available
+if echo "$resp" | jq -e 'type=="array"' >/dev/null 2>&1; then
+    latest=$(echo "$resp" | jq -r '.[].name' | sort -r | head -n 1)
+else
+    echo "[RESTORE] No backups found."
+    exit 0
 fi
 
-mkdir -p "$TMPDIR"
-cd "$TMPDIR"
-
-# Fetch manifest to know parts
-manifest_url="https://api.github.com/repos/${GITHUB_REPO}/contents/backups/${TIMESTAMP}"
-manifest_list=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$manifest_url" | jq -r '.[] | .name')
-
-# find manifest file
-manifest_file=$(echo "$manifest_list" | grep manifest_ || true)
-if [ -z "$manifest_file" ]; then
-  echo "No manifest file found in backups/${TIMESTAMP}" >&2
-  echo "Listing remote files:"
-  echo "$manifest_list"
-  exit 1
+if [ -z "$latest" ]; then
+    echo "[RESTORE] No backups exist."
+    exit 0
 fi
 
-echo "Found manifest: $manifest_file"
+echo "[RESTORE] Found backup: $latest"
 
-# download and parse manifest
-manifest_json=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/${GITHUB_REPO}/contents/backups/${TIMESTAMP}/${manifest_file}" | jq -r '.content' | base64 -d)
-echo "$manifest_json" > "$manifest_file"
+# Download manifest
+manifest=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+    "https://api.github.com/repos/$GITHUB_REPO/contents/backups/$latest" \
+    | jq -r '.[] | select(.name|startswith("manifest")) | .download_url')
 
-parts=$(echo "$manifest_json" | jq -r '.parts[].file')
-if [ -z "$parts" ]; then
-  echo "No parts listed in manifest" >&2
-  exit 1
+if [ -z "$manifest" ]; then
+    echo "[RESTORE] Manifest missing."
+    exit 0
 fi
 
-# Download each part
-i=0
+tmp="/tmp/restore_$latest"
+mkdir -p "$tmp"
+
+curl -L "$manifest" -o "$tmp/manifest.json"
+parts=$(jq -r '.parts[].file' "$tmp/manifest.json")
+
+echo "[RESTORE] Downloading parts..."
 for p in $parts; do
-  echo "Downloading $p"
-  content=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/${GITHUB_REPO}/contents/backups/${TIMESTAMP}/${p}" | jq -r '.content')
-  echo "$content" | base64 -d > "$p"
-  i=$((i+1))
+    url="https://raw.githubusercontent.com/$GITHUB_REPO/main/backups/$latest/$p"
+    curl -L "$url" -o "$tmp/$p"
 done
 
-# Concatenate parts back into single archive name found in manifest
-archive_name=$(echo "$manifest_json" | jq -r '.archive')
-cat ${archive_name}.part-* > "$archive_name"
+# Rebuild archive
+archive=$(jq -r '.archive' "$tmp/manifest.json")
+cat "$tmp/$archive".part-* > "$tmp/$archive"
 
-# Extract into world dir (backup will contain folder name, usually "worlds")
-mkdir -p /server
-tar -xzf "$archive_name" -C /server
+echo "[RESTORE] Extracting archive..."
+rm -rf "$WORLD_DIR"
+tar -xzf "$tmp/$archive" -C /server
 
-echo "Restored files to /server. Move or rename as needed to ${WORLD_DIR}."
-echo "Cleanup $TMPDIR if everything looks good."
+echo "[RESTORE] Restore complete."
