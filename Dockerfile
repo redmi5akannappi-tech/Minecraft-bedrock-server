@@ -2,7 +2,7 @@ FROM debian:bookworm-slim
 
 # Install required dependencies
 RUN apt-get update && apt-get install -y \
-    unzip curl libssl3 libcurl4 libstdc++6 python3 python3-pip jq git tar gzip coreutils base64 \
+    unzip curl libcurl4 libstdc++6 python3 python3-pip jq git tar gzip coreutils \
     && rm -rf /var/lib/apt/lists/*
 
 # Make sure pip packages are available if needed (we use only stdlib)
