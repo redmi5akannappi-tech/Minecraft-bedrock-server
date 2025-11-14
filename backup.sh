@@ -12,6 +12,11 @@ ARCHIVE_NAME="world_$TIMESTAMP.tar.gz"
 MANIFEST="manifest_$TIMESTAMP.json"
 REMOTE_BASE_PATH="backups/${TIMESTAMP}"
 
+if [ ! -d "$WORLD_DIR" ]; then
+  echo "World directory not found. Skipping backup."
+  exit 0
+fi
+
 if [ -z "$GITHUB_REPO" ] || [ -z "$GITHUB_TOKEN" ]; then
   echo "GITHUB_REPO and GITHUB_TOKEN must be set in environment" >&2
   exit 1
