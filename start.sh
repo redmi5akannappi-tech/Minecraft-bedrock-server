@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BEDROCK="./bedrock_server"
+cd /server
+export LD_LIBRARY_PATH=.
 
 echo "[START] Launching Minecraft Bedrock..."
-$BEDROCK
+./bedrock_server
