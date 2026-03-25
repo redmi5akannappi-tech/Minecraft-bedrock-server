@@ -7,15 +7,38 @@ cd /server
 python3 -m http.server ${PORT:-8080} --bind 0.0.0.0 &
 DUMMY_PID=$!
 
-# Start Playit (installed via apt)
-echo "[PLAYIT] ================================================"
-echo "[PLAYIT] Starting Playit - WATCH FOR CLAIM URL BELOW!"
-echo "[PLAYIT] Create tunnels for:"
-echo "[PLAYIT]   - 127.0.0.1:25565 (TCP - Java Edition)"
-echo "[PLAYIT]   - 127.0.0.1:19132 (UDP - Bedrock via Geyser)"
-echo "[PLAYIT] ================================================"
-playit &
+# Start Playit and capture output so claim URL is visible
+echo ""
+echo "######################################################"
+echo "#                                                    #"
+echo "#   PLAYIT STARTING - WATCH FOR CLAIM URL BELOW!     #"
+echo "#                                                    #"
+echo "#   Tunnels will be created for:                     #"
+echo "#     - 127.0.0.1:25565 (TCP - Java Edition)         #"
+echo "#     - 127.0.0.1:19132 (UDP - Bedrock via Geyser)   #"
+echo "#                                                    #"
+echo "######################################################"
+echo ""
+
+# Run playit and prefix ALL its output so it stands out in logs
+# Also save to a log file for easy retrieval
+playit 2>&1 | while IFS= read -r line; do
+    echo "[PLAYIT] $line"
+    echo "$line" >> /server/playit.log
+    # Highlight the claim URL when it appears
+    if echo "$line" | grep -qi "claim"; then
+        echo ""
+        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        echo "!!! CLAIM URL FOUND: $line"
+        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        echo ""
+    fi
+done &
 PLAYIT_PID=$!
+
+# Wait for playit to print claim URL before starting Paper
+echo "[WAIT] Giving playit 15 seconds to display claim URL..."
+sleep 15
 
 # Attempt to restore world from backup
 if [ -x ./restore.sh ]; then

@@ -27,7 +27,7 @@ cd "$TMPDIR"
 
 echo "Creating tar.gz of world dir: $WORLD_DIR"
 tar -czf "$ARCHIVE_NAME" -C "$(dirname "$WORLD_DIR")" "$(basename "$WORLD_DIR")"
-ARCHIVE_SIZE=$(stat -c%s "$ARCHIVE_NAME")
+ARCHIVE_SIZE=$(wc -c < "$ARCHIVE_NAME" | tr -d ' ')
 echo "Archive created: $ARCHIVE_NAME (${ARCHIVE_SIZE} bytes)"
 
 echo "Splitting into chunks of ${CHUNK_SIZE}..."
@@ -70,7 +70,7 @@ jq -n --arg ts "$TIMESTAMP" --arg arch "$ARCHIVE_NAME" --argjson size "$ARCHIVE_
 
 for p in "${parts[@]}"; do
   fname="$(basename "$p")"
-  fsize=$(stat -c%s "$p")
+  fsize=$(wc -c < "$p" | tr -d ' ')
   jq --arg fn "$fname" --argjson s "$fsize" '.parts += [{"file":$fn,"size":$s}]' $MANIFEST > ${MANIFEST}.tmp && mv ${MANIFEST}.tmp $MANIFEST
 done
 

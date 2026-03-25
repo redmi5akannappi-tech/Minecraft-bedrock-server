@@ -1,16 +1,16 @@
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:21-jre-alpine
 
-# Install dependencies (python3 for health check, curl/jq/git for backups, gpg for playit PPA)
-RUN apt-get update && apt-get install -y \
-    curl jq git tar gzip coreutils python3 gpg sudo \
-    && rm -rf /var/lib/apt/lists/*
+# Install minimal dependencies
+# - gcompat: glibc compatibility for playit binary
+# - bash, curl, jq, git, tar, gzip, coreutils: for scripts
+# - python3: for health-check HTTP server
+RUN apk add --no-cache \
+    bash curl jq git tar gzip coreutils python3 gcompat
 
-# Install playit via official PPA
-RUN curl -SsL https://playit-cloud.github.io/ppa/key.gpg | gpg --dearmor | tee /etc/apt/trusted.gpg.d/playit.gpg >/dev/null \
-    && echo "deb [signed-by=/etc/apt/trusted.gpg.d/playit.gpg] https://playit-cloud.github.io/ppa/data ./" | tee /etc/apt/sources.list.d/playit-cloud.list \
-    && apt-get update \
-    && apt-get install -y playit \
-    && rm -rf /var/lib/apt/lists/*
+# Download playit binary directly (no PPA needed on Alpine)
+RUN curl -SsL -o /usr/local/bin/playit \
+    https://github.com/playit-cloud/playit-agent/releases/latest/download/playit-linux-amd64 \
+    && chmod +x /usr/local/bin/playit
 
 # Set working directory
 WORKDIR /server
@@ -25,7 +25,7 @@ COPY paper.jar /server/paper.jar
 # Accept EULA
 RUN echo "eula=true" > /server/eula.txt
 
-# Copy plugin JARs to a staging area (plugins/ folder created after first run)
+# Copy plugin JARs
 RUN mkdir -p /server/plugins
 COPY Geyser-Spigot.jar /server/plugins/Geyser-Spigot.jar
 COPY floodgate-spigot.jar /server/plugins/floodgate-spigot.jar
