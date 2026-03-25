@@ -66,7 +66,7 @@ python3 -m http.server ${PORT:-8080} --bind 0.0.0.0 &
 
 # Start Minecraft FIRST
 echo "[PAPER] Starting Minecraft server..."
-java -Xms128M -Xmx256M -jar paper.jar --nogui &
+java -Xms128M -Xmx192M -jar paper.jar --nogui &
 MC_PID=$!
 
 # Delay Playit start
