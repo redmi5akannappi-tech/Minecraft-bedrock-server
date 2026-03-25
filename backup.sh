@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Config
-WORLD_DIR="${WORLD_DIR:-/server/worlds}"
+WORLD_DIR="${WORLD_DIR:-/server/world}"
 CHUNK_SIZE="${BACKUP_CHUNK_SIZE:-90M}"
 GITHUB_REPO="${GITHUB_REPO:-}"
 GITHUB_TOKEN="${GITHUB_TOKEN:-}"

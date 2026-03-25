@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-WORLD_DIR="${WORLD_DIR:-/server/worlds}"
+WORLD_DIR="${WORLD_DIR:-/server/world}"
 GITHUB_REPO="${GITHUB_REPO:-}"
 GITHUB_TOKEN="${GITHUB_TOKEN:-}"
 

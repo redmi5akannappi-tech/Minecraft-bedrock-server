@@ -1,21 +1,18 @@
 #!/bin/bash
 set -e
 
-cd /server
+# Install playit via official PPA (used during Docker build)
+echo "[PLAYIT] Installing Playit via PPA..."
 
-if [ ! -f "./playit" ]; then
-  echo "[PLAYIT] Downloading Playit..."
-  curl -L \
-    -o playit \
-    https://github.com/playit-cloud/playit-agent/releases/latest/download/playit-linux-amd64
-  chmod +x playit
-fi
+curl -SsL https://playit-cloud.github.io/ppa/key.gpg | gpg --dearmor | tee /etc/apt/trusted.gpg.d/playit.gpg >/dev/null
+echo "deb [signed-by=/etc/apt/trusted.gpg.d/playit.gpg] https://playit-cloud.github.io/ppa/data ./" | tee /etc/apt/sources.list.d/playit-cloud.list
+apt-get update
+apt-get install -y playit
 
-echo "[PLAYIT] Starting Playit agent..."
+echo "[PLAYIT] Playit installed successfully."
 echo "[PLAYIT] ================================================"
-echo "[PLAYIT] If this is first run, look for claim URL below!"
-echo "[PLAYIT] Make sure tunnel points to 127.0.0.1:19132"
+echo "[PLAYIT] When running, look for the claim URL in logs!"
+echo "[PLAYIT] Create tunnels for:"
+echo "[PLAYIT]   - 127.0.0.1:25565 (TCP - Java Edition)"
+echo "[PLAYIT]   - 127.0.0.1:19132 (UDP - Bedrock via Geyser)"
 echo "[PLAYIT] ================================================"
-
-# Run playit (runs in background via entrypoint)
-./playit 2>&1

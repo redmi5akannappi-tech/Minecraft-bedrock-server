@@ -7,20 +7,14 @@ cd /server
 python3 -m http.server ${PORT:-8080} --bind 0.0.0.0 &
 DUMMY_PID=$!
 
-# Download and start Playit
-if [ ! -f "./playit" ]; then
-  echo "[PLAYIT] Downloading Playit..."
-  curl -L \
-    -o playit \
-    https://github.com/playit-cloud/playit-agent/releases/latest/download/playit-linux-amd64
-  chmod +x playit
-fi
-
+# Start Playit (installed via apt)
 echo "[PLAYIT] ================================================"
 echo "[PLAYIT] Starting Playit - WATCH FOR CLAIM URL BELOW!"
-echo "[PLAYIT] Make sure tunnel points to 127.0.0.1:19132"
+echo "[PLAYIT] Create tunnels for:"
+echo "[PLAYIT]   - 127.0.0.1:25565 (TCP - Java Edition)"
+echo "[PLAYIT]   - 127.0.0.1:19132 (UDP - Bedrock via Geyser)"
 echo "[PLAYIT] ================================================"
-./playit &
+playit &
 PLAYIT_PID=$!
 
 # Attempt to restore world from backup
@@ -39,11 +33,10 @@ fi
 # Cleanup on exit
 trap "kill $PLAYIT_PID $DUMMY_PID $BACKUP_PID 2>/dev/null" EXIT
 
-# Keep restarting Bedrock to avoid memory leaks
+# Keep restarting Paper to avoid memory leaks
 while true; do
-    echo "[BEDROCK] Starting Minecraft Bedrock server..."
-    export LD_LIBRARY_PATH=.
-    ./bedrock_server || true
-    echo "[BEDROCK] Server stopped or crashed. Restarting in 10 seconds..."
+    echo "[PAPER] Starting Minecraft Paper server..."
+    java -Xms256M -Xmx400M -jar paper.jar --nogui || true
+    echo "[PAPER] Server stopped or crashed. Restarting in 10 seconds..."
     sleep 10
 done

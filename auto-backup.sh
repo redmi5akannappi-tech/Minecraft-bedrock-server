@@ -2,7 +2,7 @@
 set -euo pipefail
 
 BACKUP_INTERVAL_SECONDS="${BACKUP_INTERVAL_SECONDS:-86400}"
-WORLD_DIR="${WORLD_DIR:-/server/worlds}"
+WORLD_DIR="${WORLD_DIR:-/server/world}"
 
 while true; do
     if [ ! -d "$WORLD_DIR" ]; then
