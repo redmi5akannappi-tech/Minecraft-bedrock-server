@@ -7,38 +7,29 @@ cd /server
 python3 -m http.server ${PORT:-8080} --bind 0.0.0.0 &
 DUMMY_PID=$!
 
-# Start Playit and capture output so claim URL is visible
-echo ""
-echo "######################################################"
-echo "#                                                    #"
-echo "#   PLAYIT STARTING - WATCH FOR CLAIM URL BELOW!     #"
-echo "#                                                    #"
-echo "#   Tunnels will be created for:                     #"
-echo "#     - 127.0.0.1:25565 (TCP - Java Edition)         #"
-echo "#     - 127.0.0.1:19132 (UDP - Bedrock via Geyser)   #"
-echo "#                                                    #"
-echo "######################################################"
-echo ""
+# =====================================================
+# PLAYIT SETUP - uses SECRET_KEY env var
+# =====================================================
 
-# Run playit and prefix ALL its output so it stands out in logs
-# Also save to a log file for easy retrieval
-playit 2>&1 | while IFS= read -r line; do
-    echo "[PLAYIT] $line"
-    echo "$line" >> /server/playit.log
-    # Highlight the claim URL when it appears
-    if echo "$line" | grep -qi "claim"; then
-        echo ""
-        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-        echo "!!! CLAIM URL FOUND: $line"
-        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-        echo ""
-    fi
-done &
-PLAYIT_PID=$!
+if [ -n "$SECRET_KEY" ]; then
+    echo "[PLAYIT] Secret key found! Starting playit agent..."
+    # Write secret to a temp file (playit reads it this way)
+    echo "$SECRET_KEY" > /server/playit_secret.toml
+    playit --secret "$SECRET_KEY" 2>&1 | sed 's/^/[PLAYIT] /' &
+    PLAYIT_PID=$!
+    echo "[PLAYIT] Agent started. Manage tunnels at https://playit.gg/account/tunnels"
+else
+    echo ""
+    echo "######################################################"
+    echo "#  WARNING: SECRET_KEY not set!                      #"
+    echo "#  Add SECRET_KEY env var in Render dashboard.       #"
+    echo "######################################################"
+    echo ""
+    playit 2>&1 | sed 's/^/[PLAYIT] /' &
+    PLAYIT_PID=$!
+fi
 
-# Wait for playit to print claim URL before starting Paper
-echo "[WAIT] Giving playit 15 seconds to display claim URL..."
-sleep 15
+sleep 5
 
 # Attempt to restore world from backup
 if [ -x ./restore.sh ]; then
