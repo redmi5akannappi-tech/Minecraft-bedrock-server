@@ -1,16 +1,67 @@
 {
   "stats": {
+    "minecraft:used": {
+      "minecraft:chicken": 3,
+      "minecraft:crafting_table": 2,
+      "minecraft:wooden_sword": 47,
+      "minecraft:porkchop": 4,
+      "minecraft:mutton": 2,
+      "minecraft:white_bed": 1,
+      "minecraft:dirt": 3
+    },
+    "minecraft:picked_up": {
+      "minecraft:porkchop": 4,
+      "minecraft:leaf_litter": 4,
+      "minecraft:dirt": 10,
+      "minecraft:oak_log": 5,
+      "minecraft:stick": 1,
+      "minecraft:white_wool": 3,
+      "minecraft:feather": 3,
+      "minecraft:birch_log": 3,
+      "minecraft:chicken": 3,
+      "minecraft:mutton": 4
+    },
     "minecraft:custom": {
-      "minecraft:sprint_one_cm": 5151,
-      "minecraft:time_since_rest": 957,
-      "minecraft:fall_one_cm": 600,
-      "minecraft:walk_one_cm": 1448,
-      "minecraft:total_world_time": 957,
-      "minecraft:leave_game": 1,
-      "minecraft:fly_one_cm": 1770,
-      "minecraft:play_time": 957,
-      "minecraft:jump": 20,
-      "minecraft:time_since_death": 957
+      "minecraft:interact_with_crafting_table": 3,
+      "minecraft:time_since_rest": 14831,
+      "minecraft:walk_one_cm": 29826,
+      "minecraft:leave_game": 2,
+      "minecraft:mob_kills": 9,
+      "minecraft:damage_taken": 170,
+      "minecraft:play_time": 14831,
+      "minecraft:damage_dealt": 602,
+      "minecraft:jump": 197,
+      "minecraft:time_since_death": 14831,
+      "minecraft:sprint_one_cm": 64869,
+      "minecraft:fall_one_cm": 2925,
+      "minecraft:total_world_time": 14831,
+      "minecraft:fly_one_cm": 13262,
+      "minecraft:crouch_one_cm": 706,
+      "minecraft:sneak_time": 2077
+    },
+    "minecraft:killed": {
+      "minecraft:chicken": 4,
+      "minecraft:pig": 2,
+      "minecraft:sheep": 3
+    },
+    "minecraft:mined": {
+      "minecraft:short_grass": 1,
+      "minecraft:powder_snow": 2,
+      "minecraft:oak_leaves": 8,
+      "minecraft:dirt": 7,
+      "minecraft:birch_log": 3,
+      "minecraft:leaf_litter": 7,
+      "minecraft:oak_log": 5,
+      "minecraft:grass_block": 3
+    },
+    "minecraft:crafted": {
+      "minecraft:white_bed": 1,
+      "minecraft:stick": 8,
+      "minecraft:wooden_axe": 2,
+      "minecraft:oak_planks": 20,
+      "minecraft:wooden_sword": 2,
+      "minecraft:birch_planks": 12,
+      "minecraft:crafting_table": 2
     }
   },
   "DataVersion": 4671
