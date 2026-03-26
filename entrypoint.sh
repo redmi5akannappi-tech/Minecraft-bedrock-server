@@ -57,22 +57,22 @@
 # java -Xms128M -Xmx256M -jar paper.jar --nogui
 #!/bin/bash
 #!/bin/bash
+#!/bin/bash
 set -e
 
-cd /server
+cd /Mine-Java-Server
 
-# HTTP server for Render
+# HTTP server (Render requirement)
 python3 -m http.server ${PORT:-8080} --bind 0.0.0.0 &
 
-# Start Minecraft FIRST
+# Start Minecraft
 echo "[PAPER] Starting Minecraft server..."
 java -Xms128M -Xmx192M -jar paper.jar --nogui &
 MC_PID=$!
 
-# Delay Playit start
-sleep 15
+# Start Playit after delay
+sleep 10
 
-# Start Playit
 if [ -n "$SECRET_KEY" ]; then
     echo "[PLAYIT] Starting..."
     playit --secret "$SECRET_KEY" &
